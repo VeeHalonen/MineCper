@@ -4,8 +4,10 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-static const int SIZE = 8;
+static const int SIZE = 4;
 static const int NO_OF_MINES = 10;
+static int moves_left = SIZE*SIZE-NO_OF_MINES; /* N:o of non-mine squares left */
+static int mines_left = NO_OF_MINES;
 static const char MINE = '*';
 static const char FLAG = 'c';
 static const char WRONG_FLAG = 'x';
@@ -72,7 +74,7 @@ static void print_board() {
     char letter = 'A';
     
     /* First row */
-    printf("    ");
+    printf("\n    ");
     for (i = 1; i <= SIZE; i++) {
         printf("%d ", i);
     }
@@ -92,7 +94,7 @@ static void print_board() {
             else if (board[i][j] == FLAG) {
                 print_char_blue(board[i][j]);
             }
-            /* Print wrong flags as the normal flag symbol but red */
+            /* Print wrong flags as yellow */
             else if (board[i][j] == WRONG_FLAG) {
                 print_char_yellow(WRONG_FLAG);
             }
@@ -103,7 +105,7 @@ static void print_board() {
         printf("|%c", '\n');
     }
     printf("%c", '\n');
-
+    printf("Mines left: %d\n\n", mines_left);
 }
 
 /* Helper function, prints the minefield "cheat sheet" */
@@ -143,7 +145,6 @@ static void reveal_mines() {
     /* Mark mines and wrong flags */
     for (i = 0; i < SIZE; i++) {
         for (j = 0; j < SIZE; j++) {
-            /* No */
             if (minefield[i][j] == MINE && board[i][j] != FLAG)
                 board[i][j] = MINE;
             if (minefield[i][j] != MINE && board[i][j] == FLAG)
@@ -152,6 +153,24 @@ static void reveal_mines() {
     }
     print_board();
 }
+
+
+/* Flags unflagged mines at the end of a game */
+static void flag_correct_mines() {
+    int i, j;
+    
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            if (minefield[i][j] == MINE && board[i][j] != FLAG)
+                board[i][j] = FLAG;
+            /* Also marks wrong flags, though there should never be any at this point */
+            if (minefield[i][j] != MINE && board[i][j] == FLAG)
+                board[i][j] = WRONG_FLAG;
+        }
+    }
+    print_board();
+}
+
 
 /* Calculates and returns the number of mines around given index */
 static int calculate_mines(int row, int col) {
@@ -196,7 +215,7 @@ static int calculate_mines(int row, int col) {
 
 /* Converts user's selection, e.g. A1, into an array index, e.g. [0][0].
    Also calls reveal_selection to handle user selection.
-   Returns 0 on game over. */
+   Returns the number of available moves - 0 means game over. */
 int take_a_guess(char row, int col) {
     
     /* Check that column index is valid before proceeding */
@@ -204,6 +223,7 @@ int take_a_guess(char row, int col) {
         printf(BAD_SELECTION);
         return 1;
     }
+    
     int row_int;
     char row_indexer = 'A';
     char selection = toupper(row);  /* Ignore case */
@@ -221,13 +241,14 @@ int take_a_guess(char row, int col) {
     return 1;
 }
 
-/* Reveals all the fields around the given index */
+/* Reveals all the fields around the given index, returns moves left */
 static int reveal_selection(int row, int col) {
     
-    /* Already open? Simply return */
+    /* Selected square already open? Simply return */
     if (minefield[row][col] == board[row][col]) {
-        return 1;
+        return moves_left;
     }
+    
     
     /* If no mines around, reveal all fields around as well */
     if (minefield[row][col] == '0') {
@@ -238,21 +259,31 @@ static int reveal_selection(int row, int col) {
     else if (minefield[row][col] == MINE) {
         reveal_mines();
         printf("GAME OVER!\n");
-        return 0;
+        moves_left = 0;
     }
     /* In other cases, reveal the selection and update board */
     else {
         board[row][col] = minefield[row][col];
+        moves_left--;
         print_board();
     }
     
-    return 1;
+    /* If there are no moves left, it's a victory! Return game over. */
+    if (moves_left == 0) {
+        flag_correct_mines();
+        printf("YOU WIN!\n");
+    }
+    
+    return moves_left;
 }
 
 static void reveal_around_zero(int row, int col) {
     
-    /* Reveal current */
-    board[row][col] = minefield[row][col];
+    /* Reveal current if not already revealed */
+    if (board[row][col] != minefield[row][col]) {
+        board[row][col] = minefield[row][col];
+        moves_left--;
+    }
     
     /* Recursively reveal around all other revealed zero-fields as well */
     if (minefield[row][col] == '0') {
@@ -283,20 +314,20 @@ static void reveal_around_zero(int row, int col) {
         
         for (; i <= end_i; i++) {
             for (j = start_j; j <= end_j; j++) {
-                
                 /* Recursion time! */
                 if ((minefield[i][j] == '0') && (board[i][j] != minefield[i][j])) {
                     reveal_around_zero(i, j);
                 }
-                
-                board[i][j] = minefield[i][j];
-                
-                
+                if (board[i][j] != minefield[i][j]) {
+                    board[i][j] = minefield[i][j];
+                    moves_left--;
+                }
             }
             
         }
     }
 }
+
 
 /* Prints given character in red */
 static void print_char_red(char c) {
@@ -325,3 +356,4 @@ static void print_char_green(char c) {
     printf("%c", c);
     printf("\033[0m");
 }
+
