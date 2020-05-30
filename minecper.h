@@ -10,7 +10,9 @@ void print_minefield();
 static void reveal_mines();
 static void flag_correct_mines();
 static int calculate_mines(int, int);
+void place_flag(char, int);
 int take_a_guess(char, int);
+int get_row(char);
 static int reveal_selection(int, int);
 static void reveal_around_zero(int, int);
 

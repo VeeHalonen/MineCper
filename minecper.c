@@ -4,10 +4,11 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-static const int SIZE = 4;
+static const int SIZE = 9;
 static const int NO_OF_MINES = 10;
 static int moves_left = SIZE*SIZE-NO_OF_MINES; /* N:o of non-mine squares left */
 static int mines_left = NO_OF_MINES;
+static const char UNREVEALED = '_';
 static const char MINE = '*';
 static const char FLAG = 'c';
 static const char WRONG_FLAG = 'x';
@@ -23,7 +24,7 @@ void initialize_board() {
     /* Player board */
     for (i = 0; i < SIZE; i++) {
         for (j = 0; j < SIZE; j++) {
-            board[i][j] = '_';
+            board[i][j] = UNREVEALED;
         }
     }
     
@@ -47,7 +48,6 @@ void initialize_board() {
     }
     
     /* The rest */
-    
     for (i = 0; i < SIZE; i++) {
         for (j = 0; j < SIZE; j++) {
             
@@ -60,7 +60,7 @@ void initialize_board() {
         for (j = 0; j < SIZE; j++) {
             /* Calculate mines */
             if (minefield[i][j] != MINE) {
-                minefield[i][j] = calculate_mines(i, j) + 48; /* ASCII 48 == '0' */
+                minefield[i][j] = '0' + calculate_mines(i, j); /* Convert to ASCII */
             }
         }
     }
@@ -147,8 +147,10 @@ static void reveal_mines() {
         for (j = 0; j < SIZE; j++) {
             if (minefield[i][j] == MINE && board[i][j] != FLAG)
                 board[i][j] = MINE;
-            if (minefield[i][j] != MINE && board[i][j] == FLAG)
+            if (minefield[i][j] != MINE && board[i][j] == FLAG) {
                 board[i][j] = WRONG_FLAG;
+                mines_left++; /* Add mine back since the flag was wrong */
+            }
         }
     }
     print_board();
@@ -213,10 +215,65 @@ static int calculate_mines(int row, int col) {
     return count;
 }
 
+/* Converts given character into row index.
+   Returns -1 if not found. */
+int get_row(char row) {
+    
+    int row_int;
+    char row_indexer = 'A';
+    char selection = toupper(row);  /* Ignore case */
+    
+    /* If corresponding row is found, return it */
+    for (row_int = 0; row_int < SIZE; row_int++) {
+        if (row_indexer == selection) {
+            return row_int;
+        }
+        row_indexer++;
+    }
+    
+    /* If not found, return -1 */
+    return -1;
+    
+}
+
+/* Places a flag on the board */
+void place_flag(char row, int col) {
+    
+    int row_i;
+    int col_i = col-1;
+    
+    /* Check that index is valid before proceeding */
+    if ((col <= 0) || (col > SIZE)) {
+        printf(BAD_SELECTION);
+        return;
+    }
+    row_i = get_row(row);
+    if (row_i == -1) {
+        printf(BAD_SELECTION);
+        return;
+    }
+    
+    /* If there was already a flag, remove it */
+    if (board[row_i][col_i] == FLAG) {
+        board[row_i][col_i] = UNREVEALED;
+        mines_left++; /* Add mine back */
+    }
+    /* Or place new flag if possible */
+    else if (board[row_i][col_i] == UNREVEALED) {
+        board[row_i][col_i] = FLAG;
+        mines_left--;
+    }
+    
+    print_board();
+    
+}
+
 /* Converts user's selection, e.g. A1, into an array index, e.g. [0][0].
    Also calls reveal_selection to handle user selection.
    Returns the number of available moves - 0 means game over. */
 int take_a_guess(char row, int col) {
+    
+    int row_int;
     
     /* Check that column index is valid before proceeding */
     if ((col <= 0) || (col > SIZE)) {
@@ -224,21 +281,13 @@ int take_a_guess(char row, int col) {
         return 1;
     }
     
-    int row_int;
-    char row_indexer = 'A';
-    char selection = toupper(row);  /* Ignore case */
-    
-    /* If corresponding row is found, call function*/
-    for (row_int = 0; row_int < SIZE; row_int++) {
-        if (row_indexer == selection) {
-            return reveal_selection(row_int, col-1);
-        }
-        row_indexer++;
+    row_int = get_row(row);
+    if (row_int == -1) {
+        printf(BAD_SELECTION);
+        return 1;
     }
     
-    /* Not found? Invalid index */
-    printf(BAD_SELECTION);
-    return 1;
+    return reveal_selection(row_int, col-1);
 }
 
 /* Reveals all the fields around the given index, returns moves left */
@@ -248,24 +297,26 @@ static int reveal_selection(int row, int col) {
     if (minefield[row][col] == board[row][col]) {
         return moves_left;
     }
-    
+    /* Selected square flagged? Return */
+    if (board[row][col] == FLAG) {
+        return moves_left;
+    }
     
     /* If no mines around, reveal all fields around as well */
     if (minefield[row][col] == '0') {
         reveal_around_zero(row, col);
-        print_board();
     }
     /* If user hits a mine, game over */
     else if (minefield[row][col] == MINE) {
+        moves_left = 0;
         reveal_mines();
         printf("GAME OVER!\n");
-        moves_left = 0;
+        return moves_left;
     }
     /* In other cases, reveal the selection and update board */
     else {
         board[row][col] = minefield[row][col];
         moves_left--;
-        print_board();
     }
     
     /* If there are no moves left, it's a victory! Return game over. */
@@ -273,11 +324,18 @@ static int reveal_selection(int row, int col) {
         flag_correct_mines();
         printf("YOU WIN!\n");
     }
+    else {
+        print_board();
+    }
     
     return moves_left;
 }
 
 static void reveal_around_zero(int row, int col) {
+    
+    /* Do not reveal if flagged */
+    if(board[row][col] == FLAG)
+        return;
     
     /* Reveal current if not already revealed */
     if (board[row][col] != minefield[row][col]) {
@@ -318,12 +376,11 @@ static void reveal_around_zero(int row, int col) {
                 if ((minefield[i][j] == '0') && (board[i][j] != minefield[i][j])) {
                     reveal_around_zero(i, j);
                 }
-                if (board[i][j] != minefield[i][j]) {
+                if (board[i][j] != minefield[i][j] && board[i][j] != FLAG) {
                     board[i][j] = minefield[i][j];
                     moves_left--;
                 }
             }
-            
         }
     }
 }
