@@ -2,7 +2,18 @@
 #ifndef MINECPER_H
 #define MINECPER_H
 
-static const char BAD_SELECTION[] = "Invalid selection.\n";
+#define CLEAR_SCREEN "\033[1;1H\033[2J"
+#define BAD_SELECTION "\nInvalid selection.\n\n"
+
+#define WELCOME_MESSAGE "\n\
+c * c * c * c * c * c * c\n\
+   Welcome to MineCper   \n\
+c * c * c * c * c * c * c\n\n"
+
+#define INSTRUCTIONS "\
+     A1 to reveal A1.\n\
+     A1* to flag A1.\n\
+     Q to quit game.\n"
 
 void initialize_board();
 static void print_board();

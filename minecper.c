@@ -1,13 +1,14 @@
 
-#include "minecper.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-static const int SIZE = 9;
+#include "minecper.h"
+
+static const int SIZE = 8;
 static const int NO_OF_MINES = 10;
-static int moves_left = SIZE*SIZE-NO_OF_MINES; /* N:o of non-mine squares left */
-static int mines_left = NO_OF_MINES;
+static int moves_left; /* N:o of non-mine squares left */
+static int mines_left;
 static const char UNREVEALED = '_';
 static const char MINE = '*';
 static const char FLAG = 'c';
@@ -19,6 +20,9 @@ void initialize_board() {
     
     int i, j, x, y;
     int mines_placed = 0;
+    
+    moves_left = SIZE*SIZE-NO_OF_MINES;
+    mines_left = NO_OF_MINES;
     
     
     /* Player board */
@@ -32,6 +36,12 @@ void initialize_board() {
     if (SIZE*SIZE < NO_OF_MINES)
         return;
     
+    /* Clear/initialize minefield */
+    for (i = 0; i < SIZE; i++) {
+        for (j = 0; j < SIZE; j++) {
+            minefield[i][j] = 'x';
+        }
+    }
     
     /* Mines */
     while (mines_placed < NO_OF_MINES) {
@@ -50,14 +60,6 @@ void initialize_board() {
     /* The rest */
     for (i = 0; i < SIZE; i++) {
         for (j = 0; j < SIZE; j++) {
-            
-            if (minefield[i][j] != MINE) {
-                minefield[i][j] = 'x';
-            }
-        }
-    }
-    for (i = 0; i < SIZE; i++) {
-        for (j = 0; j < SIZE; j++) {
             /* Calculate mines */
             if (minefield[i][j] != MINE) {
                 minefield[i][j] = '0' + calculate_mines(i, j); /* Convert to ASCII */
@@ -70,11 +72,15 @@ void initialize_board() {
 /* Prints the player board */
 static void print_board() {
     
+    printf(CLEAR_SCREEN);
+    printf(WELCOME_MESSAGE);
+    printf(INSTRUCTIONS);
+    
     int i, j;
     char letter = 'A';
     
     /* First row */
-    printf("\n    ");
+    printf("\n      ");
     for (i = 1; i <= SIZE; i++) {
         printf("%d ", i);
     }
@@ -82,7 +88,7 @@ static void print_board() {
     
     /* The rest */
     for (i = 0; i < SIZE; i++) {
-        printf(" %c ", letter);
+        printf("   %c ", letter);
         letter++;
         for (j = 0; j < SIZE; j++) {
             /* Print mines in red */
@@ -310,7 +316,7 @@ static int reveal_selection(int row, int col) {
     else if (minefield[row][col] == MINE) {
         moves_left = 0;
         reveal_mines();
-        printf("GAME OVER!\n");
+        printf("GAME OVER!\n\n");
         return moves_left;
     }
     /* In other cases, reveal the selection and update board */
@@ -322,7 +328,7 @@ static int reveal_selection(int row, int col) {
     /* If there are no moves left, it's a victory! Return game over. */
     if (moves_left == 0) {
         flag_correct_mines();
-        printf("YOU WIN!\n");
+        printf("YOU WIN!\n\n");
     }
     else {
         print_board();
