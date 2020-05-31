@@ -169,11 +169,15 @@ static void flag_correct_mines() {
     
     for (i = 0; i < SIZE; i++) {
         for (j = 0; j < SIZE; j++) {
-            if (minefield[i][j] == MINE && board[i][j] != FLAG)
+            if (minefield[i][j] == MINE && board[i][j] != FLAG) {
                 board[i][j] = FLAG;
+                mines_left--;
+            }
             /* Also marks wrong flags, though there should never be any at this point */
-            if (minefield[i][j] != MINE && board[i][j] == FLAG)
+            if (minefield[i][j] != MINE && board[i][j] == FLAG) {
                 board[i][j] = WRONG_FLAG;
+                mines_left++;
+            }
         }
     }
     print_board();
