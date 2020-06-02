@@ -15,7 +15,7 @@ When the player opens a square that is safe, a number representing the number of
 
 In order to mark an unopened square as a potential mine, the player can add an asterisk (\*) after the coordinates. A1* or 1A* would mark the square in the top left corner with a blue "c", which represents the mine flag. There is a mine counter at the bottom, which shows the number of mines left to discover.
 
-The command "Q" can be used at any time to quit the current game and return to the main menu.
+The command Q can be used at any time to quit the current game and return to the main menu.
 
 If the player hits a mine, the game ends. Undiscovered mines are shown as red asterisks, and incorrectly placed flags are turned into yellow crosses. The player is then prompted to press enter to return to the main menu where they can either quit or start a new game with a new randomly generated board.
 
