@@ -7,9 +7,9 @@ This is a command line Minesweeper clone written in the C language.
 
 ## Description and Features
 
-When the game launches, the player is welcomed to the MineCper app and prompted to choose either N for New Game or Q for Quit. The commands are not case sensitive.
+When the game launches, the player is welcomed to the MineCper app and prompted to choose either N for New Game or Q for Quit. The commands are not case-sensitive.
 
-Starting a new game generates a game board of size 8x8 and 10 randomly placed mines. Rows are marked with the letters A-H and columns with the numbers 1-8. The player can then choose which square to reveal by inputting the command. A1 or 1A will reveal the square in the top left corner. These commands are also not case sensitive.
+Starting a new game generates a game board of size 8x8 and 10 randomly placed hidden mines. Rows are marked with the letters A-H and columns with the numbers 1-8. The player can then choose which square to reveal by inputting the command. A1 or 1A will reveal the square in the top left corner. These commands are also not case-sensitive.
 
 When the player opens a square that is safe, a number representing the number of mines around that square is revealed. If the player opens a square with no mines around it, those squares are automatically revealed. The same thing happens to any automatically revealed mines that have no mines around them until the whole safe area has been revealed.
 
