@@ -17,7 +17,7 @@ In order to mark an unopened square as a potential mine, the player can add an a
 
 The command Q can be used at any time to quit the current game and return to the main menu.
 
-If the player hits a mine, the game ends. Undiscovered mines are shown as red asterisks, and incorrectly placed flags are turned into yellow crosses. The player is then prompted to press enter to return to the main menu where they can either quit or start a new game with a new randomly generated board.
+If the player hits a mine, the game ends. Undiscovered mines are revealed as red asterisks, and incorrectly placed flags are turned into yellow crosses. The player is then prompted to press enter to return to the main menu where they can either quit or start a new game with a new randomly generated board.
 
 To win the game, the player must open all the squares that have no mine in them. Upon opening the last square, any unmarked mines are automatically marked with flags, and the player is congratulated on their victory. They are then prompted to press enter to return to the main menu.
 
